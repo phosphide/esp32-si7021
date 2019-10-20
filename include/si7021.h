@@ -59,21 +59,18 @@ extern "C" {
 #define SI7021_ERR_INVALID_STATE	0x06
 #define SI7021_ERR_TIMEOUT	 		0x07
 
-// variables
-i2c_port_t _port;
-
 // functions
 int si7021_init(i2c_port_t port, int sda_pin, int scl_pin, gpio_pullup_t sda_internal_pullup, gpio_pullup_t scl_internal_pullup);
-float si7021_read_temperature();
-float si7021_read_humidity();
-uint8_t si7021_get_resolution();
-int si7021_set_resolution(uint8_t resolution);
-int si7021_soft_reset();
+float si7021_read_temperature(i2c_port_t port);
+float si7021_read_humidity(i2c_port_t port);
+uint8_t si7021_get_resolution(i2c_port_t port);
+int si7021_set_resolution(i2c_port_t port, uint8_t resolution);
+int si7021_soft_reset(i2c_port_t port);
 
 // helper functions
-uint8_t si7021_read_user_register();
-int si7021_write_user_register(uint8_t value);
-uint16_t read_value(uint8_t command);
+uint8_t si7021_read_user_register(i2c_port_t port);
+int si7021_write_user_register(i2c_port_t port, uint8_t value);
+uint16_t read_value(i2c_port_t port, uint8_t command);
 bool is_crc_valid(uint16_t value, uint8_t crc);
 
 #ifdef __cplusplus

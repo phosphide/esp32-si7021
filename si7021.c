@@ -14,7 +14,6 @@
 int si7021_init(i2c_port_t port, int sda_pin, int scl_pin,  gpio_pullup_t sda_internal_pullup,  gpio_pullup_t scl_internal_pullup) {
 
 	esp_err_t ret;
-	_port = port;
 
 	// setup i2c controller
 	i2c_config_t conf;
@@ -42,46 +41,46 @@ int si7021_init(i2c_port_t port, int sda_pin, int scl_pin,  gpio_pullup_t sda_in
 	return SI7021_ERR_OK;
 }
 
-float si7021_read_temperature() {
+float si7021_read_temperature(i2c_port_t port) {
 
 	// get the raw value from the sensor
-	uint16_t raw_temperature = read_value(TRIGGER_TEMP_MEASURE_NOHOLD);
+	uint16_t raw_temperature = read_value(port, TRIGGER_TEMP_MEASURE_NOHOLD);
 	if(raw_temperature == 0) return -999;
 
 	// return the real value, formula in datasheet
 	return (raw_temperature * 175.72 / 65536.0) - 46.85;
 }
 
-float si7021_read_humidity() {
+float si7021_read_humidity(i2c_port_t port) {
 
 	// get the raw value from the sensor
-	uint16_t raw_humidity = read_value(TRIGGER_HUMD_MEASURE_NOHOLD);
+	uint16_t raw_humidity = read_value(port, TRIGGER_HUMD_MEASURE_NOHOLD);
 	if(raw_humidity == 0) return -999;
 
 	// return the real value, formula in datasheet
 	return (raw_humidity * 125.0 / 65536.0) - 6.0;
 }
 
-uint8_t si7021_get_resolution() {
+uint8_t si7021_get_resolution(i2c_port_t port) {
 
-	uint8_t reg_value = si7021_read_user_register();
+	uint8_t reg_value = si7021_read_user_register(port);
 	return reg_value & 0b10000001;
 }
 
-int si7021_set_resolution(uint8_t resolution) {
+int si7021_set_resolution(i2c_port_t port, uint8_t resolution) {
 
 	// get the actual resolution
-	uint8_t reg_value = si7021_read_user_register();
+	uint8_t reg_value = si7021_read_user_register(port);
 	reg_value &= 0b10000001;
 
 	// update the register value with the new resolution
 	resolution &= 0b10000001;
 	reg_value |= resolution;
 
-	return si7021_write_user_register(reg_value);
+	return si7021_write_user_register(port, reg_value);
 }
 
-int si7021_soft_reset() {
+int si7021_soft_reset(i2c_port_t port) {
 
 	esp_err_t ret;
 
@@ -91,7 +90,7 @@ int si7021_soft_reset() {
 	i2c_master_write_byte(cmd, (SI7021_ADDR << 1) | I2C_MASTER_WRITE, true);
 	i2c_master_write_byte(cmd, SOFT_RESET, true);
 	i2c_master_stop(cmd);
-	ret = i2c_master_cmd_begin(_port, cmd, 1000 / portTICK_RATE_MS);
+	ret = i2c_master_cmd_begin(port, cmd, 1000 / portTICK_RATE_MS);
 	i2c_cmd_link_delete(cmd);
 
 	switch(ret) {
@@ -111,7 +110,7 @@ int si7021_soft_reset() {
 	return SI7021_ERR_OK;
 }
 
-uint8_t si7021_read_user_register() {
+uint8_t si7021_read_user_register(i2c_port_t port) {
 
 	esp_err_t ret;
 
@@ -121,7 +120,7 @@ uint8_t si7021_read_user_register() {
 	i2c_master_write_byte(cmd, (SI7021_ADDR << 1) | I2C_MASTER_WRITE, true);
 	i2c_master_write_byte(cmd, READ_USER_REG, true);
 	i2c_master_stop(cmd);
-	ret = i2c_master_cmd_begin(_port, cmd, 1000 / portTICK_RATE_MS);
+	ret = i2c_master_cmd_begin(port, cmd, 1000 / portTICK_RATE_MS);
 	i2c_cmd_link_delete(cmd);
 	if(ret != ESP_OK) return 0;
 
@@ -132,14 +131,14 @@ uint8_t si7021_read_user_register() {
 	i2c_master_write_byte(cmd, (SI7021_ADDR << 1) | I2C_MASTER_READ, true);
 	i2c_master_read_byte(cmd, &reg_value, 0x01);
 	i2c_master_stop(cmd);
-	ret = i2c_master_cmd_begin(_port, cmd, 1000 / portTICK_RATE_MS);
+	ret = i2c_master_cmd_begin(port, cmd, 1000 / portTICK_RATE_MS);
 	i2c_cmd_link_delete(cmd);
 	if(ret != ESP_OK) return 0;
 
 	return reg_value;
 }
 
-int si7021_write_user_register(uint8_t value) {
+int si7021_write_user_register(i2c_port_t port, uint8_t value) {
 
 	esp_err_t ret;
 
@@ -150,7 +149,7 @@ int si7021_write_user_register(uint8_t value) {
 	i2c_master_write_byte(cmd, WRITE_USER_REG, true);
 	i2c_master_write_byte(cmd, value, true);
 	i2c_master_stop(cmd);
-	ret = i2c_master_cmd_begin(_port, cmd, 1000 / portTICK_RATE_MS);
+	ret = i2c_master_cmd_begin(port, cmd, 1000 / portTICK_RATE_MS);
 	i2c_cmd_link_delete(cmd);
 
 	switch(ret) {
@@ -170,7 +169,7 @@ int si7021_write_user_register(uint8_t value) {
 	return SI7021_ERR_OK;
 }
 
-uint16_t read_value(uint8_t command) {
+uint16_t read_value(i2c_port_t port, uint8_t command) {
 
 	esp_err_t ret;
 
@@ -180,7 +179,7 @@ uint16_t read_value(uint8_t command) {
 	i2c_master_write_byte(cmd, (SI7021_ADDR << 1) | I2C_MASTER_WRITE, true);
 	i2c_master_write_byte(cmd, command, true);
 	i2c_master_stop(cmd);
-	ret = i2c_master_cmd_begin(_port, cmd, 1000 / portTICK_RATE_MS);
+	ret = i2c_master_cmd_begin(port, cmd, 1000 / portTICK_RATE_MS);
 	i2c_cmd_link_delete(cmd);
 	if(ret != ESP_OK) return 0;
 
@@ -196,7 +195,7 @@ uint16_t read_value(uint8_t command) {
 	i2c_master_read_byte(cmd, &lsb, 0x00);
 	i2c_master_read_byte(cmd, &crc, 0x01);
 	i2c_master_stop(cmd);
-	ret = i2c_master_cmd_begin(_port, cmd, 1000 / portTICK_RATE_MS);
+	ret = i2c_master_cmd_begin(port, cmd, 1000 / portTICK_RATE_MS);
 	i2c_cmd_link_delete(cmd);
 	if(ret != ESP_OK) return 0;
 
