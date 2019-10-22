@@ -11,6 +11,8 @@
 // Component header file
 #include "si7021.h"
 
+#include <math.h>
+
 int si7021_init(i2c_port_t port, int sda_pin, int scl_pin,  gpio_pullup_t sda_internal_pullup,  gpio_pullup_t scl_internal_pullup) {
 
 	esp_err_t ret;
@@ -45,7 +47,7 @@ float si7021_read_temperature(i2c_port_t port) {
 
 	// get the raw value from the sensor
 	uint16_t raw_temperature = read_value(port, TRIGGER_TEMP_MEASURE_NOHOLD);
-	if(raw_temperature == 0) return -999;
+	if(raw_temperature == 0) return NAN;
 
 	// return the real value, formula in datasheet
 	return (raw_temperature * 175.72 / 65536.0) - 46.85;
@@ -55,7 +57,7 @@ float si7021_read_humidity(i2c_port_t port) {
 
 	// get the raw value from the sensor
 	uint16_t raw_humidity = read_value(port, TRIGGER_HUMD_MEASURE_NOHOLD);
-	if(raw_humidity == 0) return -999;
+	if(raw_humidity == 0) return NAN;
 
 	// return the real value, formula in datasheet
 	return (raw_humidity * 125.0 / 65536.0) - 6.0;
