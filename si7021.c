@@ -202,7 +202,9 @@ uint16_t read_value(i2c_port_t port, uint8_t command) {
 	if(ret != ESP_OK) return 0;
 
 	uint16_t raw_value = ((uint16_t) msb << 8) | (uint16_t) lsb;
-	if(!is_crc_valid(raw_value, crc)) printf("CRC invalid\r\n");
+	if(!is_crc_valid(raw_value, crc)) {
+		return 0; // printf("CRC invalid\r\n");
+	}
 	return raw_value & 0xFFFC;
 }
 
