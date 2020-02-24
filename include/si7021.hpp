@@ -15,7 +15,11 @@ class Si7021 {
 public:
 	Si7021() {
 	}
-	int init(i2c_port_t port, gpio_num_t sda_pin, gpio_num_t scl_pin,  gpio_pullup_t sda_internal_pullup,  gpio_pullup_t scl_internal_pullup) {
+
+	Si7021(const Si7021 &) = delete;
+
+	int init(i2c_port_t port, gpio_num_t sda_pin, gpio_num_t scl_pin, gpio_pullup_t sda_internal_pullup,
+	         gpio_pullup_t scl_internal_pullup) {
 		int ret = si7021_init(port, sda_pin, scl_pin, sda_internal_pullup, scl_internal_pullup);
 		if (ret == SI7021_ERR_OK) {
 			port_ = port;
