@@ -13,10 +13,12 @@
 
 class Si7021 {
 public:
-	Si7021() {
-	}
+	Si7021() = default;
 
 	Si7021(const Si7021 &) = delete;
+	Si7021(Si7021 &&) = delete;
+	Si7021 &operator=(const Si7021 &) = delete;
+	Si7021 &operator=(Si7021 &&) = delete;
 
 	int init(i2c_port_t port, gpio_num_t sda_pin, gpio_num_t scl_pin, gpio_pullup_t sda_internal_pullup,
 	         gpio_pullup_t scl_internal_pullup) {
